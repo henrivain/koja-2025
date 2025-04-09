@@ -83,9 +83,8 @@ function main() {
     // })
 
 
-    const mover = new Mover(engine);
     document.getElementById("export-btn")?.addEventListener("click", _ => {
-        const selected = mover.selected;
+        const selected = engine.mover.selected;
         if (selected) {
             exportSTL([selected!])
             return;
@@ -100,6 +99,67 @@ function main() {
         engine.addElem(createRandomCube())
 
     });
+
+
+
+
+    document.getElementById("InsidePanel-btn")?.addEventListener("click", _ => {
+        const geometry = new BoxGeometry(9.842, 7.042, 0.01);
+        const material = new MeshBasicMaterial({ color: Math.random() * 0xffffff });
+        const insidePanel = new Mesh(geometry, material);
+
+        // Position the panel (for example, you can adjust these values)
+        insidePanel.position.set((Math.random() - 0.5) * 10, 0, (Math.random() - 0.5) * 10);
+
+        // Add the panel to the scene
+        engine.addElem(insidePanel)
+    })
+    document.getElementById("OutsidePanel-btn")?.addEventListener("click", _ => {
+        const geometry = new BoxGeometry(9.870, 7.070, 0.01);
+        const material = new MeshBasicMaterial({ color: Math.random() * 0xffffff });
+        const outsidePanel = new Mesh(geometry, material);
+
+        // Position the panel (for example, you can adjust these values)
+        outsidePanel.position.set((Math.random() - 0.5) * 10, 0, (Math.random() - 0.5) * 10);
+
+        // Add the panel to the scene
+        engine.addElem(outsidePanel);
+    })
+    document.getElementById("BlockCoil-btn")?.addEventListener("click", _ => {
+        // Create a coil block (just a box for now as a placeholder for the actual model)
+        const geometry = new BoxGeometry(17.80, 3.80, 0.015);
+        const material = new MeshBasicMaterial({ color: Math.random() * 0xffffff });
+        const blockCoil = new Mesh(geometry, material);
+
+        // Position the block coil (adjust to your needs)
+        blockCoil.position.set((Math.random() - 0.5) * 10, 0, (Math.random() - 0.5) * 10);
+
+        // Add the block coil to the scene
+        engine.addElem(blockCoil);
+    })
+    document.getElementById("Profile-btn")?.addEventListener("click", _ => {
+        const geometry = new BoxGeometry(1.0, 0.01, 0.01); // Thin profile
+        const material = new MeshBasicMaterial({ color: Math.random() * 0xffffff });
+        const profile = new Mesh(geometry, material);
+
+        // Position the profile (example placement)
+        profile.position.set(0, 0, 0);
+
+        engine.addElem(profile);
+    })
+
+    document.getElementById("Module-btn")?.addEventListener("click", _ => {
+
+        const geometry = new BoxGeometry(10.00, 10.00, 10.00);
+        const material = new MeshBasicMaterial({ color: Math.random() * 0xffffff });
+        const module = new Mesh(geometry, material);
+
+        // Position the module (example placement)
+        module.position.set(0, 0, 0);
+
+        engine.addElem(module);
+    })
+
     // document.getElementById("random-ball-btn")?.addEventListener("click", _ => {
     //     engine.addElem(createRandomSphere())
     // });
@@ -171,4 +231,5 @@ function createRandomSphere() {
 
 
 main();
+
 
