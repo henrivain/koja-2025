@@ -8,14 +8,13 @@
     </head>
     <body>
         <h1>CAD Panel Visualizer</h1>
-        <select id="panelSelector">
-            <option value="panel">Luukku (Panel)</option>
-            <option value="panelInside">Luukun sisäpaneeli</option>
-            <option value="panelOutside">Luukun ulkopaneeli</option>
-        </select>
 
-        <button id="visualizeBtn">Visualize</button>
-        <button id="exportBtn">Export Model</button>
+        <div>
+            <button class="_setting-btn" value="0">1</button>
+            <button class="_setting-btn" value="1">2</button>
+            <button class="_setting-btn" value="2">3</button>
+        </div>
+
         <div id="viewer"></div>
 
         <script type="module" src="src/app.ts"></script>

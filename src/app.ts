@@ -43,8 +43,17 @@ function main() {
     engine.addElem(cube3)
 
     engine.addGui(cube3)
-    engine.deleteElem(cube3)
+
+    document.querySelectorAll<HTMLButtonElement>("._setting-btn").forEach(btn => {
+        btn.addEventListener("click", _ => {
+            const selected = [cube, cube2, cube3][parseInt(btn.value)];
+            engine.addGui(selected)
+        })
+
+    });
 }
+
+
 
 
 

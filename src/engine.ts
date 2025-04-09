@@ -15,6 +15,7 @@ const MOVE_SPEED = 20;
 
 
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { generateMagicSquareNoise } from "three/examples/jsm/Addons.js";
 
 export default class Engine {
     container: HTMLElement;
@@ -23,6 +24,7 @@ export default class Engine {
     scene: Scene;
     controls: OrbitControls;
     elems: Object3D[];
+    gui: dat.GUI | null = null;
 
     constructor(container: HTMLElement, elems: Object3D[]) {
         this.container = container;
@@ -108,13 +110,23 @@ export default class Engine {
     }
 
 
+
     addGui(elem: Mesh) {
         // GUI controls using dat.GUI
         const gui = new dat.GUI();
+        if (this.gui) {
+            for (const controller of [...gui.__controllers]) {
+                gui.remove(controller)
+
+            }
+            gui.destroy();
+        }
+        this.gui = gui;
+
         const cubeParams = {
-            x: 0,
-            y: 0,
-            z: 0,
+            x: elem.position.x,
+            y: elem.position.y,
+            z: elem.position.z,
             scale: 1,
         };
 
