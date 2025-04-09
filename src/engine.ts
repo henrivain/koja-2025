@@ -12,7 +12,7 @@ import {
 import * as dat from 'dat.gui';
 
 
-
+const BACKGROUND = "cloud-sky.jpg";
 
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
@@ -40,7 +40,7 @@ export default class Engine {
         this.controls = this.addControls();
 
         const loader = new TextureLoader();
-        this.scene.background = loader.load("gambina-muovipullo.jpg");
+        this.scene.background = loader.load(BACKGROUND);
     }
 
     run() {
@@ -89,6 +89,11 @@ export default class Engine {
         const directionalLight = new DirectionalLight(0xffffff, 3);
         directionalLight.position.set(100, 100, 100);
         this.scene.add(directionalLight);
+
+        // This light is inside the fucking oven
+        const directionalLight2 = new DirectionalLight(0xffffff, 2);
+        directionalLight2.position.set(200, 20, 200);
+        this.scene.add(directionalLight2);
     }
 
 

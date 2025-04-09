@@ -7,6 +7,7 @@ import {
     Scene,
     BackSide,
     WebGLRenderer,
+    Object3D,
 } from "three";
 import Engine from './engine';
 
@@ -17,7 +18,7 @@ const MOVE_SPEED = 20;
 export class Mover {
     rayCaster: Raycaster;
     mouseLocation: Vector2;
-    selected: any = null;
+    selected: Object3D | null = null;
     outlineMesh: Mesh | null = null;
     scene: Scene;
     gui: dat.GUI;
@@ -95,14 +96,17 @@ export class Mover {
         this.cubeParams.y = this.selected.position.y;
         this.cubeParams.z = this.selected.position.z;
         this.cubeParams.scale = this.selected.scale.x;
+        if (!this.selected) {
+            return;
+        }
 
-        this.gui.add(this.cubeParams, 'x', -MAX_INPUT, MAX_INPUT).onChange(() => this.selected.position.x = this.cubeParams.x);
-        this.gui.add(this.cubeParams, 'y', -MAX_INPUT, MAX_INPUT).onChange(() => this.selected.position.y = this.cubeParams.y);
-        this.gui.add(this.cubeParams, 'z', -MAX_INPUT, MAX_INPUT).onChange(() => this.selected.position.z = this.cubeParams.z);
+        this.gui.add(this.cubeParams, 'x', -MAX_INPUT, MAX_INPUT).onChange(() => this.selected!.position.x = this.cubeParams.x);
+        this.gui.add(this.cubeParams, 'y', -MAX_INPUT, MAX_INPUT).onChange(() => this.selected!.position.y = this.cubeParams.y);
+        this.gui.add(this.cubeParams, 'z', -MAX_INPUT, MAX_INPUT).onChange(() => this.selected!.position.z = this.cubeParams.z);
         this.gui.add(this.cubeParams, 'scale', 0.1, 3).onChange(() => {
-            this.selected.scale.set(this.cubeParams.scale, this.cubeParams.scale, this.cubeParams.scale);
+            this.selected!.scale.set(this.cubeParams.scale, this.cubeParams.scale, this.cubeParams.scale);
             if (this.outlineMesh) {
-                this.outlineMesh.scale.copy(this.selected.scale).multiplyScalar(1.05);
+                this.outlineMesh.scale.copy(this.selected!.scale).multiplyScalar(1.05);
             }
         });
 
