@@ -214,6 +214,16 @@ document.addEventListener('keydown', (event) => {
         case 'ArrowRight':
             selectedObject.position.x += moveSpeed;
             break;
+        case 'Delete':
+            // Remove the selected object from the scene
+            scene.remove(selectedObject);
+            // Remove outline if exists
+            if (outlineMesh) {
+                scene.remove(outlineMesh);
+                outlineMesh = null;
+            }
+            selectedObject = null;
+            updateGUIForSelected();
     }
 
     if (outlineMesh) {
