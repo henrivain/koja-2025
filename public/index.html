@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Simple CAD Viewer</title>
+        <link rel="stylesheet" href="css/styles.css" />
+    </head>
+    <body>
+        <h1>CAD Panel Visualizer</h1>
+        <select id="panelSelector">
+            <option value="panel">Luukku (Panel)</option>
+            <option value="panelInside">Luukun sisäpaneeli</option>
+            <option value="panelOutside">Luukun ulkopaneeli</option>
+        </select>
+
+        <button id="visualizeBtn">Visualize</button>
+        <button id="exportBtn">Export Model</button>
+        <div id="viewer"></div>
+
+        <script type="module" src="src/app.ts"></script>
+    </body>
+</html>
