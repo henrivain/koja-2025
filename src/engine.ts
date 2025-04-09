@@ -5,9 +5,13 @@ import {
   AmbientLight,
   DirectionalLight,
   Object3D,
+  PCFSoftShadowMap,
+  TextureLoader,
 } from "three";
 
 import * as dat from "dat.gui";
+
+const BACKGROUND = "cloud-sky.jpg";
 
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Mover } from "./Mover";
@@ -27,6 +31,9 @@ export default class Engine {
   constructor(container: HTMLElement, elems: Object3D[]) {
     this.container = container;
     this.renderer = new WebGLRenderer({ antialias: true });
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = PCFSoftShadowMap;
+
     this.camera = new PerspectiveCamera(
       75,
       container.clientWidth / container.clientHeight,
@@ -112,6 +119,7 @@ export default class Engine {
 
   selectElement(index: number) {
     this.selectedObject = this.elems[index];
+    this.mover.selected = this.selectedObject;
     this.mover.highLight(this.selectedObject);
     this.updateSidebar();
   }
@@ -144,6 +152,9 @@ export default class Engine {
       input.focus();
       input.select(); // Select all text for easy replacement
     }
+
+    const loader = new TextureLoader();
+    this.scene.background = loader.load(BACKGROUND);
   }
 
   run() {
@@ -197,9 +208,14 @@ export default class Engine {
     ambientLight.position.set(0, 1, 1).normalize();
     this.scene.add(ambientLight);
 
-    const directionalLight = new DirectionalLight(0xffffff, 2);
+    const directionalLight = new DirectionalLight(0xffffff, 3);
     directionalLight.position.set(100, 100, 100);
     this.scene.add(directionalLight);
+
+    // This light is inside the fucking oven
+    const directionalLight2 = new DirectionalLight(0xffffff, 2);
+    directionalLight2.position.set(200, 20, 200);
+    this.scene.add(directionalLight2);
   }
 
   // Clear old meshes
