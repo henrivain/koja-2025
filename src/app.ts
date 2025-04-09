@@ -5,6 +5,7 @@ import {
     DoubleSide,
     MeshBasicMaterial,
     SphereGeometry,
+    MeshStandardMaterial,
 
 } from "three";
 
@@ -48,11 +49,36 @@ function main() {
 
 
     const loader = new STLLoader();
-    loader.load("Unnamed.stl", (geometry) => {
-        const lightBlue = new MeshBasicMaterial({ color: 0x3993ed, side: DoubleSide });
+    loader.load("hyva_nimi.stl", (geometry) => {
+
+
+        const lightBlue = new MeshStandardMaterial({ color: 0x87227d });//new MeshBasicMaterial({ color: 0x3993ed, side: DoubleSide });
         const mesh = new Mesh(geometry, lightBlue);
         engine.addElem(mesh)
+        mesh.position.y = 0;
+        mesh.position.x = 200;
+        mesh.position.z = 200;
+        mesh.receiveShadow = true;
+
+        const scale = mesh.scale.x * 0.1
+        mesh.scale.set(scale, scale, scale)
+        mesh.rotateX(Math.PI / 2)
+        mesh.rotateY(Math.PI)
+
+        // const lightBlue = new MeshStandardMaterial({ color: 0x87227d });//new MeshBasicMaterial({ color: 0x3993ed, side: DoubleSide });
+        // const mesh = new Mesh(geometry, lightBlue);
+        // engine.addElem(mesh)
+        // mesh.position.y = 300;
+        // mesh.receiveShadow = true;
     })
+
+    // loader.load("Unnamed.stl", (geometry) => {
+    //     const lightBlue = new MeshBasicMaterial({ color: 0x3993ed, side: DoubleSide });
+    //     const mesh = new Mesh(geometry, lightBlue);
+    //     engine.addElem(mesh)
+    //     mesh.position.y = 300;
+    //     mesh.receiveShadow = true;
+    // })
 
 
     new Mover(engine);
