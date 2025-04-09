@@ -29,13 +29,42 @@ scene.add(floor);
 // OrbitControls: Add mouse control to the camera
 const controls = new THREE.OrbitControls(camera, renderer.domElement); // Attach controls to camera and renderer
 
+// Raycaster for object selection
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let selectedObject = null;
+
+// Function to handle mouse click
+function onMouseClick(event) {
+    // Calculate mouse position in normalized device coordinates (-1 to +1)
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // Update the raycaster with the camera and mouse position
+    raycaster.setFromCamera(mouse, camera);
+
+    // Calculate objects intersecting the raycaster
+    const intersects = raycaster.intersectObjects(scene.children);
+
+    if (intersects.length > 0) {
+        // Deselect previous object
+        if (selectedObject) {
+            selectedObject.material.emissive.setHex(selectedObject.currentHex);
+        }
+
+        // Select the first intersected object
+        selectedObject = intersects[0].object;
+        selectedObject.currentHex = selectedObject.material.emissive.getHex();
+        selectedObject.material.emissive.setHex(0x000000); // Highlight with black border color
+    }
+}
+
+// Add event listener for mouse click
+window.addEventListener('click', onMouseClick, false);
+
 // Animation loop
 function animate() {
     requestAnimationFrame(animate);
-
-    // Cube rotation removed to stop automatic movement
-    // cube.rotation.x += 0.01; // Removed rotation
-    // cube.rotation.y += 0.01; // Removed rotation
 
     controls.update(); // Update the controls (required for damping)
 
@@ -65,6 +94,48 @@ gui.add(cubeParams, 'scale', 0.1, 3).onChange(() => {
     cube.scale.set(cubeParams.scale, cubeParams.scale, cubeParams.scale);
 });
 
+const guiAdd = new dat.GUI({ width: 200 });
+guiAdd.domElement.style.position = 'absolute';
+guiAdd.domElement.style.left = '300px'; // Position it next to the original GUI
+guiAdd.domElement.style.top = '0px'; // Align it with the first panel
+guiAdd.domElement.style.zIndex = '100'; // Make sure it's above canvas
+
+const objectAdder = {
+    addCube: function () {
+        const geometry = new THREE.BoxGeometry();
+        const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
+        const cube = new THREE.Mesh(geometry, material);
+        cube.position.set(
+            (Math.random() - 0.5) * 10,
+            0,
+            (Math.random() - 0.5) * 10
+        );
+        scene.add(cube);
+        updateObjectList();
+    },
+    addSphere: function () {
+        const geometry = new THREE.SphereGeometry(0.5, 32, 32);
+        const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
+        const sphere = new THREE.Mesh(geometry, material);
+        sphere.position.set(
+            (Math.random() - 0.5) * 10,
+            0,
+            (Math.random() - 0.5) * 10
+        );
+        scene.add(sphere);
+        updateObjectList();
+    }
+};
+
+guiAdd.add(objectAdder, 'addCube').name('Add Cube');
+guiAdd.add(objectAdder, 'addSphere').name('Add Sphere');
+
+// Optional: Style both panels to be more visible
+gui.domElement.style.position = 'absolute';
+gui.domElement.style.left = '10px';
+gui.domElement.style.top = '0px';
+gui.domElement.style.zIndex = '100';
+
 // Function to move the cube using arrow keys
 let moveSpeed = 0.1; // Define how fast the cube moves
 
@@ -87,5 +158,23 @@ document.addEventListener('keydown', (event) => {
 
 // Ensure the cube stays on the flat surface
 cube.position.y = 0;
+
+// Function to update the list of objects in the scene
+function updateObjectList() {
+    const objectList = guiAdd.addFolder('Objects in Scene');
+    objectList.domElement.style.position = 'absolute';
+    objectList.domElement.style.left = '500px'; // Position it next to the original GUI
+    objectList.domElement.style.top = '0px'; // Align it with the first panel
+    objectList.domElement.style.zIndex = '100'; // Make sure it's above canvas
+    // Clear previous list
+    while (objectList.__controllers.length > 0) {
+        objectList.remove(objectList.__controllers[0]);
+    }
+
+    // Add current objects to the list
+    scene.children.forEach((object, index) => {
+        objectList.add({ name: object.type }, 'name').name(`Object ${index + 1}: ${object.type}`);
+    });
+}
 
 animate();
