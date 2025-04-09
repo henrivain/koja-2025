@@ -66,6 +66,7 @@ export class Mover {
     if (this.outlineMesh) {
       this.scene.remove(this.outlineMesh);
       this.outlineMesh = null;
+
     }
     if (!obj) {
       return;
@@ -87,6 +88,89 @@ export class Mover {
     while (this.gui.__controllers.length > 0) {
       this.gui.remove(this.gui.__controllers[0]);
     }
+
+    updateGUIForSelected() {
+        while (this.gui.__controllers.length > 0) {
+            this.gui.remove(this.gui.__controllers[0]);
+        }
+
+        if (!this.selected) {
+            this.gui.domElement.style.display = 'none';
+            return;
+        }
+
+        this.cubeParams.x = this.selected.position.x;
+        this.cubeParams.y = this.selected.position.y;
+        this.cubeParams.z = this.selected.position.z;
+        this.cubeParams.scale = this.selected.scale.x;
+        if (!this.selected) {
+            return;
+        }
+
+        this.gui.add(this.cubeParams, 'x', -MAX_INPUT, MAX_INPUT).onChange(() => this.selected!.position.x = this.cubeParams.x);
+        this.gui.add(this.cubeParams, 'y', -MAX_INPUT, MAX_INPUT).onChange(() => this.selected!.position.y = this.cubeParams.y);
+        this.gui.add(this.cubeParams, 'z', -MAX_INPUT, MAX_INPUT).onChange(() => this.selected!.position.z = this.cubeParams.z);
+        this.gui.add(this.cubeParams, 'scale', 0.1, 3).onChange(() => {
+            this.selected!.scale.set(this.cubeParams.scale, this.cubeParams.scale, this.cubeParams.scale);
+            if (this.outlineMesh) {
+                this.outlineMesh.scale.copy(this.selected!.scale).multiplyScalar(1.05);
+            }
+        });
+
+        // Adding the independent scaling controls for each axis
+        this.gui.add(this.cubeParams, 'length', 0.1, 5).onChange(() => {
+            this.selected!.scale.x = this.cubeParams.length;
+            if (this.outlineMesh) {
+                this.outlineMesh.scale.x = this.cubeParams.length * 1.05;
+            }
+        });
+
+        this.gui.add(this.cubeParams, 'width', 0.1, 5).onChange(() => {
+            this.selected!.scale.y = this.cubeParams.width;
+            if (this.outlineMesh) {
+                this.outlineMesh.scale.y = this.cubeParams.width * 1.05;
+            }
+        });
+
+        this.gui.add(this.cubeParams, 'height', 0.1, 5).onChange(() => {
+            this.selected!.scale.z = this.cubeParams.height;
+            if (this.outlineMesh) {
+                this.outlineMesh.scale.z = this.cubeParams.height * 1.05;
+            }
+        });
+
+        this.gui.add(this.cubeParams, 'rotationX', -Math.PI, Math.PI).onChange(() => {
+            this.selected!.rotation.x = this.cubeParams.rotationX;
+        });
+        this.gui.add(this.cubeParams, 'rotationY', -Math.PI, Math.PI).onChange(() => {
+            this.selected!.rotation.y = this.cubeParams.rotationY;
+        });
+        this.gui.add(this.cubeParams, 'rotationZ', -Math.PI, Math.PI).onChange(() => {
+            this.selected!.rotation.z = this.cubeParams.rotationZ;
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (!this.selected) {
+                return;
+            }
+            switch (event.key) {
+                case 'ArrowUp':
+                    this.selected.position.z -= MOVE_SPEED; // Move forward (negative Z)
+                    break;
+                case 'ArrowDown':
+                    this.selected.position.z += MOVE_SPEED; // Move backward (positive Z)
+                    break;
+                case 'ArrowLeft':
+                    this.selected.position.x -= MOVE_SPEED; // Move left (negative X)
+                    break;
+                case 'ArrowRight':
+                    this.selected.position.x += MOVE_SPEED; // Move right (positive X)
+                    break;
+            }
+        });
+
+        this.gui.domElement.style.display = 'block'; // Show GUI when object is selected
+
 
     if (!this.selected) {
       this.gui.domElement.style.display = "none";
