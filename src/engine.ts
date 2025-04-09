@@ -3,13 +3,14 @@ import {
     PerspectiveCamera,
     WebGLRenderer,
     Mesh,
-    DoubleSide,
     AmbientLight,
-    PlaneGeometry,
-    MeshBasicMaterial,
+    DirectionalLight,
+    Object3D,
 } from "three";
 
 import * as dat from 'dat.gui';
+const MAX_INPUT = 200;
+const MOVE_SPEED = 20;
 
 
 
@@ -21,14 +22,14 @@ export default class Engine {
     camera: PerspectiveCamera;
     scene: Scene;
     controls: OrbitControls;
-    renderFunc: (renderer: Scene) => void
+    elems: Object3D[];
 
-    constructor(container: HTMLElement, renderFunc: (renderer: Scene) => void) {
+    constructor(container: HTMLElement, elems: Object3D[]) {
         this.container = container;
         this.renderer = new WebGLRenderer({ antialias: true });
         this.camera = new PerspectiveCamera(75, container.clientWidth / container.clientHeight, 1, 5000);
         this.scene = new Scene();
-        this.renderFunc = renderFunc;
+        this.elems = elems;
         this.controls = this.addControls();
     }
 
@@ -42,7 +43,6 @@ export default class Engine {
         this.addLighting()
         this.render();
         this.animate();
-        this.addFloor();
 
         document.getElementById("visualizeBtn")?.addEventListener("click", _ => this.render());
     }
@@ -53,8 +53,14 @@ export default class Engine {
         this.renderer.render(this.scene, this.camera);
     }
 
-    setFunc(renderFunc: (renderer: Scene) => void) {
-        this.renderFunc = renderFunc;
+    addElem(elem: Object3D) {
+        this.scene.add(elem);
+        this.elems.push(elem);
+    }
+
+    deleteElem(elem: Object3D) {
+        this.elems = this.elems.filter(x => x != elem);
+        this.scene.remove(elem);
     }
 
     addControls() {
@@ -67,19 +73,16 @@ export default class Engine {
 
 
 
-    addFloor() {
-        const plane = new PlaneGeometry(100, 100);
-        const material = new MeshBasicMaterial({ color: 0x808080, side: DoubleSide })
-        const floor = new Mesh(plane, material);
-        floor.rotation.x = -Math.PI / 2;
-        floor.position.y = -1;
-        this.scene.add(floor);
-    }
+
 
     addLighting() {
         const ambientLight = new AmbientLight(0xffffff, 0.5);
         ambientLight.position.set(0, 1, 1).normalize();
         this.scene.add(ambientLight);
+
+        const directionalLight = new DirectionalLight(0xffffff, 2);
+        directionalLight.position.set(100, 100, 100);
+        this.scene.add(directionalLight);
     }
 
 
@@ -98,8 +101,9 @@ export default class Engine {
 
     render() {
         this.clearScene();
-        this.renderFunc(this.scene);
-        this.addFloor();
+        for (const elem of this.elems) {
+            this.scene.add(elem);
+        }
         this.animate();
     }
 
@@ -114,13 +118,13 @@ export default class Engine {
             scale: 1,
         };
 
-        gui.add(cubeParams, 'x', -5, 5).onChange(() => {
+        gui.add(cubeParams, 'x', -MAX_INPUT, MAX_INPUT).onChange(() => {
             elem.position.x = cubeParams.x;
         });
-        gui.add(cubeParams, 'y', -5, 5).onChange(() => {
+        gui.add(cubeParams, 'y', -MAX_INPUT, MAX_INPUT).onChange(() => {
             elem.position.y = cubeParams.y;
         });
-        gui.add(cubeParams, 'z', -5, 5).onChange(() => {
+        gui.add(cubeParams, 'z', -MAX_INPUT, MAX_INPUT).onChange(() => {
             elem.position.z = cubeParams.z;
         });
         gui.add(cubeParams, 'scale', 0.1, 3).onChange(() => {
@@ -128,29 +132,26 @@ export default class Engine {
         });
 
         // Function to move the cube using arrow keys
-        let moveSpeed = 0.1; // Define how fast the cube moves
 
         document.addEventListener('keydown', (event) => {
             switch (event.key) {
                 case 'ArrowUp':
-                    elem.position.z -= moveSpeed; // Move forward (negative Z)
+                    elem.position.z -= MOVE_SPEED; // Move forward (negative Z)
                     break;
                 case 'ArrowDown':
-                    elem.position.z += moveSpeed; // Move backward (positive Z)
+                    elem.position.z += MOVE_SPEED; // Move backward (positive Z)
                     break;
                 case 'ArrowLeft':
-                    elem.position.x -= moveSpeed; // Move left (negative X)
+                    elem.position.x -= MOVE_SPEED; // Move left (negative X)
                     break;
                 case 'ArrowRight':
-                    elem.position.x += moveSpeed; // Move right (positive X)
+                    elem.position.x += MOVE_SPEED; // Move right (positive X)
                     break;
             }
         });
 
         // Ensure the cube stays on the flat surface
         elem.position.y = 0;
-
-
     }
 
 }
