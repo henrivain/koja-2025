@@ -115,7 +115,10 @@ resizeObserver.observe(document.getElementById("viewport"));
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
+
   controls.update(); // Update the controls (required for damping)
+
+  // Render the scene
   renderer.render(scene, camera);
 }
 
@@ -141,7 +144,6 @@ gui.add(cubeParams, "scale", 0.1, 3).onChange(() => {
   cube.scale.set(cubeParams.scale, cubeParams.scale, cubeParams.scale);
 });
 
-// Setting up the second GUI panel for object creation
 const guiAdd = new dat.GUI({ width: 200 });
 guiAdd.domElement.style.position = "absolute";
 guiAdd.domElement.style.left = "300px"; // Position it next to the original GUI
@@ -154,16 +156,19 @@ const objectAdder = {
     const material = new THREE.MeshBasicMaterial({
       color: Math.random() * 0xffffff,
     });
-    const newCube = new THREE.Mesh(geometry, material);
-    newCube.position.set(
+    const cube = new THREE.Mesh(geometry, material);
+    cube.position.set(
       (Math.random() - 0.5) * 10,
       0,
       (Math.random() - 0.5) * 10
     );
-    addObjectToScene(
-      newCube,
+    // Use SceneManager to add the cube
+    const id = sceneManager.addObject(
+      cube,
       `Cube ${sceneManager.getAllObjects().length + 1}`
     );
+    // Update the UI
+    updateSceneManagerUI();
   },
   addSphere: function () {
     const geometry = new THREE.SphereGeometry(0.5, 32, 32);
@@ -176,10 +181,13 @@ const objectAdder = {
       0,
       (Math.random() - 0.5) * 10
     );
-    addObjectToScene(
+    // Use SceneManager to add the sphere
+    const id = sceneManager.addObject(
       sphere,
       `Sphere ${sceneManager.getAllObjects().length + 1}`
     );
+    // Update the UI
+    updateSceneManagerUI();
   },
 };
 
@@ -213,6 +221,9 @@ document.addEventListener("keydown", (event) => {
       break;
   }
 });
+
+// Ensure the cube stays on the flat surface
+cube.position.y = 0;
 
 // Function to update the SceneManager UI panel
 function updateSceneManagerUI() {
@@ -440,5 +451,24 @@ createUI();
 // Initialize the SceneManager UI
 updateSceneManagerUI();
 
-// Call the animation loop
+// Function to update the list of objects in the scene
+function updateObjectList() {
+  const objectList = guiAdd.addFolder("Objects in Scene");
+  objectList.domElement.style.position = "absolute";
+  objectList.domElement.style.left = "500px"; // Position it next to the original GUI
+  objectList.domElement.style.top = "0px"; // Align it with the first panel
+  objectList.domElement.style.zIndex = "100"; // Make sure it's above canvas
+  // Clear previous list
+  while (objectList.__controllers.length > 0) {
+    objectList.remove(objectList.__controllers[0]);
+  }
+
+  // Add current objects to the list
+  scene.children.forEach((object, index) => {
+    objectList
+      .add({ name: object.type }, "name")
+      .name(`Object ${index + 1}: ${object.type}`);
+  });
+}
+
 animate();
