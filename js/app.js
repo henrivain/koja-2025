@@ -82,10 +82,10 @@ renderer.domElement.addEventListener('click', onClick);
 
 // GUI controls
 const gui = new dat.GUI();
-gui.domElement.style.display = 'none'; // Initially hidden
+// gui.domElement.style.display = 'none'; // Initially hidden
 gui.domElement.style.position = 'absolute';
 gui.domElement.style.left = '10px';
-gui.domElement.style.top = '0px';
+gui.domElement.style.top = '70px';
 gui.domElement.style.zIndex = '100';
 
 const cubeParams = {
@@ -107,7 +107,7 @@ function updateGUIForSelected() {
     }
 
     if (!selectedObject) {
-        gui.domElement.style.display = 'none';
+        //gui.domElement.style.display = 'none';
         return;
     }
 
@@ -173,7 +173,7 @@ function updateGUIForSelected() {
 const guiAdd = new dat.GUI({ width: 200 });
 guiAdd.domElement.style.position = 'absolute';
 guiAdd.domElement.style.left = '300px';
-guiAdd.domElement.style.top = '0px';
+guiAdd.domElement.style.top = '70px';
 guiAdd.domElement.style.zIndex = '100';
 
 const objectAdder = {
@@ -249,15 +249,14 @@ animate();
 
 // Add STL import/export functionality
 const guiImpExp = new dat.GUI({ width: 200 });
-guiImpExp.domElement.style.position = 'absolute';
+guiImpExp.domElement.style.position = 'absolute';49
 guiImpExp.domElement.style.left = '520px';
-guiImpExp.domElement.style.top = '0px';
+guiImpExp.domElement.style.top = '70px';
 guiImpExp.domElement.style.zIndex = '100';
 
 const stlInput = document.createElement('input');
 stlInput.type = 'file';
 stlInput.accept = '.stl';
-stlInput.style.display = 'none';
 document.body.appendChild(stlInput);
 
 stlInput.addEventListener('change', function(e) {
