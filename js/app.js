@@ -132,14 +132,14 @@ guiAdd.domElement.style.zIndex = '100';
 
 const objectAdder = {
     addCube: function () {
-        const geometry = new THREE.BoxGeometry();
+        const geometry = new THREE.BoxBufferGeometry();
         const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
         const cube = new THREE.Mesh(geometry, material);
         cube.position.set((Math.random() - 0.5) * 10, 0, (Math.random() - 0.5) * 10);
         scene.add(cube);
     },
     addSphere: function () {
-        const geometry = new THREE.SphereGeometry(0.5, 32, 32);
+        const geometry = new THREE.SphereBufferGeometry(0.5, 32, 32);
         const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
         const sphere = new THREE.Mesh(geometry, material);
         sphere.position.set((Math.random() - 0.5) * 10, 0, (Math.random() - 0.5) * 10);
@@ -190,3 +190,64 @@ function animate() {
     renderer.render(scene, camera);
 }
 animate();
+
+// Add STL import/export functionality
+const stlInput = document.createElement('input');
+stlInput.type = 'file';
+stlInput.accept = '.stl';
+stlInput.style.display = 'none';
+document.body.appendChild(stlInput);
+
+stlInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const loader = new THREE.STLLoader();
+    loader.load(URL.createObjectURL(file), function(geometry) {
+        const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+        stlInput.value = ''; // Reset input
+    });
+});
+
+// Add import/export functions to objectAdder
+objectAdder.importSTL = function() {
+    stlInput.click();
+};
+
+objectAdder.exportSTL = function() {
+    let objectsToExport = [];
+    if (selectedObject) {
+        objectsToExport.push(selectedObject);
+    } else {
+        scene.children.forEach(child => {
+            if (child !== floor && !(child instanceof THREE.Light)) {
+                objectsToExport.push(child);
+            }
+        });
+    }
+
+    if (objectsToExport.length === 0) {
+        alert('No objects to export!');
+        return;
+    }
+
+
+    const exporter = new THREE.STLExporter();
+    const group = new THREE.Group();
+    objectsToExport.forEach(obj => group.add(obj.clone()));
+    const stlString = exporter.parse(group);
+
+    const blob = new Blob([stlString], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = selectedObject ? 'selected_object.stl' : 'scene.stl';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+// Add buttons to guiAdd
+guiAdd.add(objectAdder, 'importSTL').name('Import STL');
+guiAdd.add(objectAdder, 'exportSTL').name('Export STL');
