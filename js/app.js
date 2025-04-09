@@ -45,6 +45,49 @@ const floorId = sceneManager.addObject(floor, "floor", false);
 // OrbitControls: Add mouse control to the camera
 const controls = new THREE.OrbitControls(camera, renderer.domElement); // Attach controls to camera and renderer
 
+// Raycaster for object selection
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let selectedObject = null;
+
+// Function to handle mouse click
+function onMouseClick(event) {
+  // Calculate mouse position in normalized device coordinates (-1 to +1)
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  // Update the raycaster with the camera and mouse position
+  raycaster.setFromCamera(mouse, camera);
+
+  // Calculate objects intersecting the raycaster
+  const intersects = raycaster.intersectObjects(
+    sceneManager.getSelectableObjects()
+  );
+
+  if (intersects.length > 0) {
+    // Deselect previous object
+    if (selectedObject) {
+      selectedObject.material.emissive.setHex(selectedObject.currentHex);
+    }
+
+    // Select the first intersected object
+    selectedObject = intersects[0].object;
+    selectedObject.currentHex = selectedObject.material.emissive
+      ? selectedObject.material.emissive.getHex()
+      : 0x000000;
+
+    if (selectedObject.material.emissive) {
+      selectedObject.material.emissive.setHex(0xff0000); // Highlight with red
+    }
+
+    // Highlight the corresponding item in the UI
+    highlightSelectedObjectInUI(selectedObject);
+  }
+}
+
+// Add event listener for mouse click
+window.addEventListener("click", onMouseClick, false);
+
 // Function to update the renderer size based on the viewport size
 function updateRendererSize() {
   const viewport = document.getElementById("viewport");
@@ -72,14 +115,7 @@ resizeObserver.observe(document.getElementById("viewport"));
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
-
-  // Cube rotation removed to stop automatic movement
-  // cube.rotation.x += 0.01; // Removed rotation
-  // cube.rotation.y += 0.01; // Removed rotation
-
   controls.update(); // Update the controls (required for damping)
-
-  // Render the scene
   renderer.render(scene, camera);
 }
 
@@ -105,32 +141,84 @@ gui.add(cubeParams, "scale", 0.1, 3).onChange(() => {
   cube.scale.set(cubeParams.scale, cubeParams.scale, cubeParams.scale);
 });
 
-// Function to move the cube using arrow keys
-let moveSpeed = 0.1; // Define how fast the cube moves
+// Setting up the second GUI panel for object creation
+const guiAdd = new dat.GUI({ width: 200 });
+guiAdd.domElement.style.position = "absolute";
+guiAdd.domElement.style.left = "300px"; // Position it next to the original GUI
+guiAdd.domElement.style.top = "0px"; // Align it with the first panel
+guiAdd.domElement.style.zIndex = "100"; // Make sure it's above canvas
+
+const objectAdder = {
+  addCube: function () {
+    const geometry = new THREE.BoxGeometry();
+    const material = new THREE.MeshBasicMaterial({
+      color: Math.random() * 0xffffff,
+    });
+    const newCube = new THREE.Mesh(geometry, material);
+    newCube.position.set(
+      (Math.random() - 0.5) * 10,
+      0,
+      (Math.random() - 0.5) * 10
+    );
+    addObjectToScene(
+      newCube,
+      `Cube ${sceneManager.getAllObjects().length + 1}`
+    );
+  },
+  addSphere: function () {
+    const geometry = new THREE.SphereGeometry(0.5, 32, 32);
+    const material = new THREE.MeshBasicMaterial({
+      color: Math.random() * 0xffffff,
+    });
+    const sphere = new THREE.Mesh(geometry, material);
+    sphere.position.set(
+      (Math.random() - 0.5) * 10,
+      0,
+      (Math.random() - 0.5) * 10
+    );
+    addObjectToScene(
+      sphere,
+      `Sphere ${sceneManager.getAllObjects().length + 1}`
+    );
+  },
+};
+
+guiAdd.add(objectAdder, "addCube").name("Add Cube");
+guiAdd.add(objectAdder, "addSphere").name("Add Sphere");
+
+// Optional: Style both panels to be more visible
+gui.domElement.style.position = "absolute";
+gui.domElement.style.right = "10px";
+gui.domElement.style.top = "0px";
+gui.domElement.style.zIndex = "100";
+
+// Function to move objects using arrow keys
+let moveSpeed = 0.1; // Define how fast the objects move
 
 document.addEventListener("keydown", (event) => {
+  if (!selectedObject) return;
+
   switch (event.key) {
     case "ArrowUp":
-      cube.position.z -= moveSpeed; // Move forward (negative Z)
+      selectedObject.position.z -= moveSpeed; // Move forward (negative Z)
       break;
     case "ArrowDown":
-      cube.position.z += moveSpeed; // Move backward (positive Z)
+      selectedObject.position.z += moveSpeed; // Move backward (positive Z)
       break;
     case "ArrowLeft":
-      cube.position.x -= moveSpeed; // Move left (negative X)
+      selectedObject.position.x -= moveSpeed; // Move left (negative X)
       break;
     case "ArrowRight":
-      cube.position.x += moveSpeed; // Move right (positive X)
+      selectedObject.position.x += moveSpeed; // Move right (positive X)
       break;
   }
 });
 
-// Ensure the cube stays on the flat surface
-cube.position.y = 0;
-
 // Function to update the SceneManager UI panel
 function updateSceneManagerUI() {
   const sceneObjectsList = document.getElementById("scene-objects-list");
+  if (!sceneObjectsList) return;
+
   sceneObjectsList.innerHTML = ""; // Clear the list
 
   // Get all objects from the SceneManager
@@ -139,11 +227,13 @@ function updateSceneManagerUI() {
   // Create a list item for each object
   objects.forEach((obj) => {
     if (obj.name === "floor") {
-      return;
+      return; // Skip the floor
     }
+
     // Create a container for the object item
     const itemContainer = document.createElement("div");
     itemContainer.className = "scene-object-item-container";
+    itemContainer.dataset.id = obj.id; // Store for selection
 
     // Create the object item
     const item = document.createElement("div");
@@ -162,6 +252,11 @@ function updateSceneManagerUI() {
 
       // Confirm deletion
       if (confirm(`Are you sure you want to delete "${obj.name}"?`)) {
+        // If the object being deleted is the currently selected object, clear selection
+        if (selectedObject === obj.object) {
+          selectedObject = null;
+        }
+
         // Remove the object from the scene
         if (sceneManager.removeObject(obj.id)) {
           // Update the UI
@@ -172,15 +267,24 @@ function updateSceneManagerUI() {
 
     // Add click event to select the object
     item.addEventListener("click", () => {
-      // Highlight the selected object (you can implement this later)
-      console.log(`Selected object: ${obj.name} (ID: ${obj.id})`);
+      // Clear previous selection from 3D view
+      if (selectedObject) {
+        selectedObject.material.emissive.setHex(selectedObject.currentHex);
+      }
 
-      // Remove highlight from all items
+      // Select the object in the scene
+      selectedObject = obj.object;
+
+      // Store and set emissive color for highlighting
+      if (selectedObject.material.emissive) {
+        selectedObject.currentHex = selectedObject.material.emissive.getHex();
+        selectedObject.material.emissive.setHex(0xff0000); // Red highlight
+      }
+
+      // Highlight in UI
       document.querySelectorAll(".scene-object-item").forEach((el) => {
         el.style.backgroundColor = "#34495e";
       });
-
-      // Highlight the selected item
       item.style.backgroundColor = "#2980b9";
     });
 
@@ -191,13 +295,6 @@ function updateSceneManagerUI() {
       input.type = "text";
       input.value = obj.name;
       input.className = "rename-input";
-
-      // Style the input
-      input.style.width = "100%";
-      input.style.padding = "4px";
-      input.style.boxSizing = "border-box";
-      input.style.border = "1px solid #3498db";
-      input.style.borderRadius = "3px";
 
       // Replace the item's text with the input
       item.textContent = "";
@@ -240,32 +337,105 @@ function updateSceneManagerUI() {
   });
 }
 
-// Update the SceneManager UI when objects are added or removed
+// Helper function to highlight the selected object in the UI
+function highlightSelectedObjectInUI(object) {
+  // Find the object in the SceneManager
+  const objects = sceneManager.getAllObjects();
+  const matchingObj = objects.find((obj) => obj.object === object);
+
+  if (matchingObj) {
+    // Remove highlight from all items
+    document.querySelectorAll(".scene-object-item").forEach((el) => {
+      el.style.backgroundColor = "#34495e";
+    });
+
+    // Highlight the selected item
+    const selectedItem = document.querySelector(
+      `.scene-object-item[data-id="${matchingObj.id}"]`
+    );
+    if (selectedItem) {
+      selectedItem.style.backgroundColor = "#2980b9";
+    }
+  }
+}
+
+// Function to add objects to scene with SceneManager
 function addObjectToScene(object, name) {
   const id = sceneManager.addObject(object, name);
   updateSceneManagerUI();
   return id;
 }
 
-// Function to add a new cube to the scene
-function addNewCube() {
-  const geometry = new THREE.BoxGeometry();
-  const material = new THREE.MeshBasicMaterial({
-    color: Math.random() * 0xffffff,
-  });
-  const newCube = new THREE.Mesh(geometry, material);
-  newCube.position.set(Math.random() * 10 - 5, 0, Math.random() * 10 - 5);
+// Create UI structure if it doesn't exist
+function createUI() {
+  // Check if the app element exists
+  if (!document.getElementById("app")) {
+    // Create the app container
+    const app = document.createElement("div");
+    app.id = "app";
+    document.body.appendChild(app);
 
-  addObjectToScene(newCube, `Cube ${sceneManager.getAllObjects().length + 1}`);
+    // Create the scene manager panel
+    const sceneManagerPanel = document.createElement("div");
+    sceneManagerPanel.id = "scene-manager";
+    app.appendChild(sceneManagerPanel);
+
+    // Create the viewport
+    const viewport = document.createElement("div");
+    viewport.id = "viewport";
+    app.appendChild(viewport);
+
+    // Move the renderer to the viewport
+    const rendererDomElement = renderer.domElement;
+    viewport.appendChild(rendererDomElement);
+  }
+
+  // Create scene manager contents
+  const sceneManagerEl = document.getElementById("scene-manager");
+  if (sceneManagerEl && !document.getElementById("scene-objects-list")) {
+    // Create header
+    const header = document.createElement("h3");
+    header.textContent = "Scene Objects";
+    sceneManagerEl.appendChild(header);
+
+    // Create the objects list
+    const objectsList = document.createElement("div");
+    objectsList.id = "scene-objects-list";
+    sceneManagerEl.appendChild(objectsList);
+
+    // Add buttons container
+    const buttonContainer = document.createElement("div");
+    buttonContainer.style.display = "flex";
+    buttonContainer.style.gap = "8px";
+    buttonContainer.style.marginTop = "10px";
+
+    // Add a button to create new cubes
+    const addCubeButton = document.createElement("button");
+    addCubeButton.className = "add-cube-button";
+    addCubeButton.textContent = "Add Cube";
+    addCubeButton.addEventListener("click", objectAdder.addCube);
+    buttonContainer.appendChild(addCubeButton);
+
+    // Add a button to create new spheres
+    const addSphereButton = document.createElement("button");
+    addSphereButton.className = "add-sphere-button";
+    addSphereButton.textContent = "Add Sphere";
+    addSphereButton.addEventListener("click", objectAdder.addSphere);
+    buttonContainer.appendChild(addSphereButton);
+
+    sceneManagerEl.appendChild(buttonContainer);
+  }
 }
 
-// Add a button to create new cubes
-const addCubeButton = document.createElement("button");
-addCubeButton.className = "add-cube-button";
-addCubeButton.textContent = "Add New Cube";
+// Extend SceneManager to work with the raycaster
+SceneManager.prototype.getSelectableObjects = function () {
+  return this.getAllObjects()
+    .filter((obj) => obj.name !== "floor")
+    .map((obj) => obj.object);
+};
 
-addCubeButton.addEventListener("click", addNewCube);
-document.getElementById("scene-manager").appendChild(addCubeButton);
+// Initialize UI
+createUI();
 
 // Initialize the SceneManager UI
 updateSceneManagerUI();
