@@ -1,5 +1,4 @@
 import {
-    Scene,
     BoxGeometry,
     Mesh,
     MeshPhongMaterial,
