@@ -115,30 +115,30 @@ export class Mover {
             }
         });
 
-        this.gui.domElement.style.display = 'block'; // Show GUI when object is selected
-    }
-
-
-    addGui(elem: Mesh) {
-        // Function to move the cube using arrow keys
         document.addEventListener('keydown', (event) => {
+            if (!this.selected) {
+                return;
+            }
             switch (event.key) {
                 case 'ArrowUp':
-                    elem.position.z -= MOVE_SPEED; // Move forward (negative Z)
+                    this.selected.position.z -= MOVE_SPEED; // Move forward (negative Z)
                     break;
                 case 'ArrowDown':
-                    elem.position.z += MOVE_SPEED; // Move backward (positive Z)
+                    this.selected.position.z += MOVE_SPEED; // Move backward (positive Z)
                     break;
                 case 'ArrowLeft':
-                    elem.position.x -= MOVE_SPEED; // Move left (negative X)
+                    this.selected.position.x -= MOVE_SPEED; // Move left (negative X)
                     break;
                 case 'ArrowRight':
-                    elem.position.x += MOVE_SPEED; // Move right (positive X)
+                    this.selected.position.x += MOVE_SPEED; // Move right (positive X)
                     break;
             }
         });
 
-        // Ensure the cube stays on the flat surface
-        elem.position.y = 0;
+        this.gui.domElement.style.display = 'block'; // Show GUI when object is selected
+
+
     }
+
+
 }
