@@ -1,25 +1,58 @@
-body, html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    font-family: Arial, sans-serif;
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: Arial, sans-serif;
 }
 
 #app {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  position: relative;
+}
+
+#scene-manager {
+  width: 250px;
+  background-color: whitesmoke;
+  color: black;
+  padding: 15px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+  min-width: 150px;
+  max-width: 500px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#scene-manager h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #3498db;
+  padding-bottom: 8px;
+}
+
+#scene-objects-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.scene-object-item {
+  padding: 8px;
+  margin-bottom: 5px;
+  border-radius: 4px;
+  border: 1px solid #3498db;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.scene-object-item:hover {
+  background-color: #3498db;
 }
 
 #viewport {
-    flex: 1;
-    background-color: #f0f0f0;
-    width: 100%;
-    height: 100%;
-}
-
-#controls {
-    background-color: #fff;
-    padding: 10px;
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+  flex: 1;
+  background-color: #f0f0f0;
+  height: 100%;
 }
