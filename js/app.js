@@ -11,69 +11,83 @@ const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
 const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 
-// Set camera position (camera stays fixed)
-camera.position.set(0, 1, 5); // Set a fixed camera position, no automatic movement
+// Set camera position
+camera.position.set(0, 1, 5);
 
 // Add lighting
-const light = new THREE.AmbientLight(0x404040); // Ambient light
+const light = new THREE.AmbientLight(0x404040);
 scene.add(light);
 
-// Create the floor (a large plane geometry)
-const floorGeometry = new THREE.PlaneGeometry(100, 100); // 100x100 plane
-const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x808080, side: THREE.DoubleSide }); // Gray color
+// Create floor
+const floorGeometry = new THREE.PlaneGeometry(100, 100);
+const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x808080, side: THREE.DoubleSide });
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-floor.rotation.x = -Math.PI / 2; // Rotate the floor so it's flat on the XZ plane
-floor.position.y = -1; // Position it below the cube
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = -1;
 scene.add(floor);
 
-// OrbitControls: Add mouse control to the camera
-const controls = new THREE.OrbitControls(camera, renderer.domElement); // Attach controls to camera and renderer
+// OrbitControls
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-// Raycaster for object selection
+// Raycaster and mouse for selection
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 let selectedObject = null;
+let outlineMesh = null;
 
-// Function to handle mouse click
-function onMouseClick(event) {
-    // Calculate mouse position in normalized device coordinates (-1 to +1)
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+// Highlight function
+function highlightObject(object) {
+    if (outlineMesh) {
+        scene.remove(outlineMesh);
+        outlineMesh = null;
+    }
 
-    // Update the raycaster with the camera and mouse position
-    raycaster.setFromCamera(mouse, camera);
+    if (object) {
+        const outlineMaterial = new THREE.MeshBasicMaterial({
+            color: 0x000000,
+            side: THREE.BackSide,
+        });
 
-    // Calculate objects intersecting the raycaster
-    const intersects = raycaster.intersectObjects(scene.children);
-
-    if (intersects.length > 0) {
-        // Deselect previous object
-        if (selectedObject) {
-            selectedObject.material.emissive.setHex(selectedObject.currentHex);
-        }
-
-        // Select the first intersected object
-        selectedObject = intersects[0].object;
-        selectedObject.currentHex = selectedObject.material.emissive.getHex();
-        selectedObject.material.emissive.setHex(0x000000); // Highlight with black border color
+        outlineMesh = new THREE.Mesh(object.geometry.clone(), outlineMaterial);
+        outlineMesh.position.copy(object.position);
+        outlineMesh.rotation.copy(object.rotation);
+        outlineMesh.scale.copy(object.scale).multiplyScalar(1.05);
+        scene.add(outlineMesh);
     }
 }
 
-// Add event listener for mouse click
-window.addEventListener('click', onMouseClick, false);
+// Object selection
+function onClick(event) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-// Animation loop
-function animate() {
-    requestAnimationFrame(animate);
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(scene.children, false);
 
-    controls.update(); // Update the controls (required for damping)
+    for (let i = 0; i < intersects.length; i++) {
+        if (intersects[i].object !== floor) {
+            selectedObject = intersects[i].object;
+            highlightObject(selectedObject);
+            updateGUIForSelected();
+            return;
+        }
+    }
 
-    // Render the scene
-    renderer.render(scene, camera);
+    selectedObject = null;
+    highlightObject(null);
+    updateGUIForSelected();
 }
+renderer.domElement.addEventListener('click', onClick);
 
-// GUI controls using dat.GUI
+// GUI controls
 const gui = new dat.GUI();
+gui.domElement.style.display = 'none'; // Initially hidden
+gui.domElement.style.position = 'absolute';
+gui.domElement.style.left = '10px';
+gui.domElement.style.top = '0px';
+gui.domElement.style.zIndex = '100';
+
 const cubeParams = {
     x: 0,
     y: 0,
@@ -81,100 +95,98 @@ const cubeParams = {
     scale: 1,
 };
 
-gui.add(cubeParams, 'x', -5, 5).onChange(() => {
-    cube.position.x = cubeParams.x;
-});
-gui.add(cubeParams, 'y', -5, 5).onChange(() => {
-    cube.position.y = cubeParams.y;
-});
-gui.add(cubeParams, 'z', -5, 5).onChange(() => {
-    cube.position.z = cubeParams.z;
-});
-gui.add(cubeParams, 'scale', 0.1, 3).onChange(() => {
-    cube.scale.set(cubeParams.scale, cubeParams.scale, cubeParams.scale);
-});
+function updateGUIForSelected() {
+    while (gui.__controllers.length > 0) {
+        gui.remove(gui.__controllers[0]);
+    }
 
+    if (!selectedObject) {
+        gui.domElement.style.display = 'none';
+        return;
+    }
+
+    cubeParams.x = selectedObject.position.x;
+    cubeParams.y = selectedObject.position.y;
+    cubeParams.z = selectedObject.position.z;
+    cubeParams.scale = selectedObject.scale.x;
+
+    gui.add(cubeParams, 'x', -10, 10).onChange(() => selectedObject.position.x = cubeParams.x);
+    gui.add(cubeParams, 'y', -10, 10).onChange(() => selectedObject.position.y = cubeParams.y);
+    gui.add(cubeParams, 'z', -10, 10).onChange(() => selectedObject.position.z = cubeParams.z);
+    gui.add(cubeParams, 'scale', 0.1, 3).onChange(() => {
+        selectedObject.scale.set(cubeParams.scale, cubeParams.scale, cubeParams.scale);
+        if (outlineMesh) {
+            outlineMesh.scale.copy(selectedObject.scale).multiplyScalar(1.05);
+        }
+    });
+
+    gui.domElement.style.display = 'block'; // Show GUI when object is selected
+}
+
+// Add Cube/Sphere GUI
 const guiAdd = new dat.GUI({ width: 200 });
 guiAdd.domElement.style.position = 'absolute';
-guiAdd.domElement.style.left = '300px'; // Position it next to the original GUI
-guiAdd.domElement.style.top = '0px'; // Align it with the first panel
-guiAdd.domElement.style.zIndex = '100'; // Make sure it's above canvas
+guiAdd.domElement.style.left = '300px';
+guiAdd.domElement.style.top = '0px';
+guiAdd.domElement.style.zIndex = '100';
 
 const objectAdder = {
     addCube: function () {
         const geometry = new THREE.BoxGeometry();
         const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
         const cube = new THREE.Mesh(geometry, material);
-        cube.position.set(
-            (Math.random() - 0.5) * 10,
-            0,
-            (Math.random() - 0.5) * 10
-        );
+        cube.position.set((Math.random() - 0.5) * 10, 0, (Math.random() - 0.5) * 10);
         scene.add(cube);
-        updateObjectList();
     },
     addSphere: function () {
         const geometry = new THREE.SphereGeometry(0.5, 32, 32);
         const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
         const sphere = new THREE.Mesh(geometry, material);
-        sphere.position.set(
-            (Math.random() - 0.5) * 10,
-            0,
-            (Math.random() - 0.5) * 10
-        );
+        sphere.position.set((Math.random() - 0.5) * 10, 0, (Math.random() - 0.5) * 10);
         scene.add(sphere);
-        updateObjectList();
     }
 };
 
 guiAdd.add(objectAdder, 'addCube').name('Add Cube');
 guiAdd.add(objectAdder, 'addSphere').name('Add Sphere');
 
-// Optional: Style both panels to be more visible
-gui.domElement.style.position = 'absolute';
-gui.domElement.style.left = '10px';
-gui.domElement.style.top = '0px';
-gui.domElement.style.zIndex = '100';
-
-// Function to move the cube using arrow keys
-let moveSpeed = 0.1; // Define how fast the cube moves
-
+// Move selected object with arrow keys
+let moveSpeed = 0.1;
 document.addEventListener('keydown', (event) => {
-    switch(event.key) {
+    if (!selectedObject) return;
+
+    switch (event.key) {
         case 'ArrowUp':
-            cube.position.z -= moveSpeed; // Move forward (negative Z)
+            selectedObject.position.z -= moveSpeed;
             break;
         case 'ArrowDown':
-            cube.position.z += moveSpeed; // Move backward (positive Z)
+            selectedObject.position.z += moveSpeed;
             break;
         case 'ArrowLeft':
-            cube.position.x -= moveSpeed; // Move left (negative X)
+            selectedObject.position.x -= moveSpeed;
             break;
         case 'ArrowRight':
-            cube.position.x += moveSpeed; // Move right (positive X)
+            selectedObject.position.x += moveSpeed;
             break;
     }
-});
 
-// Ensure the cube stays on the flat surface
-cube.position.y = 0;
-
-// Function to update the list of objects in the scene
-function updateObjectList() {
-    const objectList = guiAdd.addFolder('Objects in Scene');
-    objectList.domElement.style.position = 'absolute';
-    objectList.domElement.style.left = '500px'; // Position it next to the original GUI
-    objectList.domElement.style.top = '0px'; // Align it with the first panel
-    objectList.domElement.style.zIndex = '100'; // Make sure it's above canvas
-    // Clear previous list
-    while (objectList.__controllers.length > 0) {
-        objectList.remove(objectList.__controllers[0]);
+    if (outlineMesh) {
+        outlineMesh.position.copy(selectedObject.position);
     }
 
-    // Add current objects to the list
-    scene.children.forEach((object, index) => {
-        objectList.add({ name: object.type }, 'name').name(`Object ${index + 1}: ${object.type}`);
-    });
-}
+    // Sync GUI
+    cubeParams.x = selectedObject.position.x;
+    cubeParams.z = selectedObject.position.z;
+    gui.updateDisplay();
+});
 
+// Ensure the cube starts on floor
+cube.position.y = 0;
+
+// Animate
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+}
 animate();
