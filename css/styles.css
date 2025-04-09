@@ -24,3 +24,17 @@ html {
     padding: 10px;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
 }
+
+.btns {
+    padding: 20px;
+}
+
+.btns > button {
+    font-size: large;
+    background-color: #3ac961;
+    color: white;
+    border-radius: 6px;
+    padding: 8px 16px;
+    border-style: none;
+    cursor: pointer;
+}

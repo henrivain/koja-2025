@@ -117,11 +117,4 @@ export default class Engine {
         }
         this.animate();
     }
-
-
-
-
-
-
-
 }

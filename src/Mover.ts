@@ -29,6 +29,12 @@ export class Mover {
         y: 0,
         z: 0,
         scale: 1,
+        rotationX: 0,
+        rotationY: 0,
+        rotationZ: 0,
+        length: 1,  // Scale along x-axis
+        width: 1,   // Scale along y-axis
+        height: 1   // Scale along z-axis
     };
 
     constructor(engine: Engine) {
@@ -108,6 +114,38 @@ export class Mover {
             if (this.outlineMesh) {
                 this.outlineMesh.scale.copy(this.selected!.scale).multiplyScalar(1.05);
             }
+        });
+
+        // Adding the independent scaling controls for each axis
+        this.gui.add(this.cubeParams, 'length', 0.1, 5).onChange(() => {
+            this.selected!.scale.x = this.cubeParams.length;
+            if (this.outlineMesh) {
+                this.outlineMesh.scale.x = this.cubeParams.length * 1.05;
+            }
+        });
+
+        this.gui.add(this.cubeParams, 'width', 0.1, 5).onChange(() => {
+            this.selected!.scale.y = this.cubeParams.width;
+            if (this.outlineMesh) {
+                this.outlineMesh.scale.y = this.cubeParams.width * 1.05;
+            }
+        });
+
+        this.gui.add(this.cubeParams, 'height', 0.1, 5).onChange(() => {
+            this.selected!.scale.z = this.cubeParams.height;
+            if (this.outlineMesh) {
+                this.outlineMesh.scale.z = this.cubeParams.height * 1.05;
+            }
+        });
+
+        this.gui.add(this.cubeParams, 'rotationX', -Math.PI, Math.PI).onChange(() => {
+            this.selected!.rotation.x = this.cubeParams.rotationX;
+        });
+        this.gui.add(this.cubeParams, 'rotationY', -Math.PI, Math.PI).onChange(() => {
+            this.selected!.rotation.y = this.cubeParams.rotationY;
+        });
+        this.gui.add(this.cubeParams, 'rotationZ', -Math.PI, Math.PI).onChange(() => {
+            this.selected!.rotation.z = this.cubeParams.rotationZ;
         });
 
         document.addEventListener('keydown', (event) => {
