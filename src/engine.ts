@@ -2,20 +2,17 @@ import {
     Scene,
     PerspectiveCamera,
     WebGLRenderer,
-    Mesh,
     AmbientLight,
     DirectionalLight,
     Object3D,
 } from "three";
 
 import * as dat from 'dat.gui';
-const MAX_INPUT = 200;
-const MOVE_SPEED = 20;
+
 
 
 
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { generateMagicSquareNoise } from "three/examples/jsm/Addons.js";
 
 export default class Engine {
     container: HTMLElement;
@@ -25,6 +22,7 @@ export default class Engine {
     controls: OrbitControls;
     elems: Object3D[];
     gui: dat.GUI | null = null;
+    selectedObject: Object3D | null = null;
 
     constructor(container: HTMLElement, elems: Object3D[]) {
         this.container = container;
@@ -73,10 +71,6 @@ export default class Engine {
         return controls;
     }
 
-
-
-
-
     addLighting() {
         const ambientLight = new AmbientLight(0xffffff, 0.5);
         ambientLight.position.set(0, 1, 1).normalize();
@@ -111,59 +105,8 @@ export default class Engine {
 
 
 
-    addGui(elem: Mesh) {
-        // GUI controls using dat.GUI
-        const gui = new dat.GUI();
-        if (this.gui) {
-            for (const controller of [...gui.__controllers]) {
-                gui.remove(controller)
 
-            }
-            gui.destroy();
-        }
-        this.gui = gui;
 
-        const cubeParams = {
-            x: elem.position.x,
-            y: elem.position.y,
-            z: elem.position.z,
-            scale: 1,
-        };
 
-        gui.add(cubeParams, 'x', -MAX_INPUT, MAX_INPUT).onChange(() => {
-            elem.position.x = cubeParams.x;
-        });
-        gui.add(cubeParams, 'y', -MAX_INPUT, MAX_INPUT).onChange(() => {
-            elem.position.y = cubeParams.y;
-        });
-        gui.add(cubeParams, 'z', -MAX_INPUT, MAX_INPUT).onChange(() => {
-            elem.position.z = cubeParams.z;
-        });
-        gui.add(cubeParams, 'scale', 0.1, 3).onChange(() => {
-            elem.scale.set(cubeParams.scale, cubeParams.scale, cubeParams.scale);
-        });
-
-        // Function to move the cube using arrow keys
-
-        document.addEventListener('keydown', (event) => {
-            switch (event.key) {
-                case 'ArrowUp':
-                    elem.position.z -= MOVE_SPEED; // Move forward (negative Z)
-                    break;
-                case 'ArrowDown':
-                    elem.position.z += MOVE_SPEED; // Move backward (positive Z)
-                    break;
-                case 'ArrowLeft':
-                    elem.position.x -= MOVE_SPEED; // Move left (negative X)
-                    break;
-                case 'ArrowRight':
-                    elem.position.x += MOVE_SPEED; // Move right (positive X)
-                    break;
-            }
-        });
-
-        // Ensure the cube stays on the flat surface
-        elem.position.y = 0;
-    }
 
 }
