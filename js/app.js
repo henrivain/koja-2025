@@ -40,10 +40,34 @@ const floor = new THREE.Mesh(floorGeometry, floorMaterial);
 floor.rotation.x = -Math.PI / 2; // Rotate the floor so it's flat on the XZ plane
 floor.position.y = -1; // Position it below the cube
 // Add the floor to the scene using SceneManager
-const floorId = sceneManager.addObject(floor, "floor");
+const floorId = sceneManager.addObject(floor, "floor", false);
 
 // OrbitControls: Add mouse control to the camera
 const controls = new THREE.OrbitControls(camera, renderer.domElement); // Attach controls to camera and renderer
+
+// Function to update the renderer size based on the viewport size
+function updateRendererSize() {
+  const viewport = document.getElementById("viewport");
+  const width = viewport.clientWidth;
+  const height = viewport.clientHeight;
+
+  // Update the renderer size
+  renderer.setSize(width, height);
+
+  // Update the camera aspect ratio
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+}
+
+// Call updateRendererSize initially and on window resize
+updateRendererSize();
+window.addEventListener("resize", updateRendererSize);
+
+// Add resize observer to detect when the scene manager is resized
+const resizeObserver = new ResizeObserver(() => {
+  updateRendererSize();
+});
+resizeObserver.observe(document.getElementById("viewport"));
 
 // Animation loop
 function animate() {
@@ -114,10 +138,37 @@ function updateSceneManagerUI() {
 
   // Create a list item for each object
   objects.forEach((obj) => {
+    if (obj.name === "floor") {
+      return;
+    }
+    // Create a container for the object item
+    const itemContainer = document.createElement("div");
+    itemContainer.className = "scene-object-item-container";
+
+    // Create the object item
     const item = document.createElement("div");
     item.className = "scene-object-item";
     item.textContent = obj.name;
     item.dataset.id = obj.id; // Store the object ID as a data attribute
+
+    // Create the delete button
+    const deleteButton = document.createElement("button");
+    deleteButton.className = "delete-button";
+    deleteButton.innerHTML = "&times;"; // X symbol
+
+    // Add click event to the delete button
+    deleteButton.addEventListener("click", (event) => {
+      event.stopPropagation(); // Prevent triggering the item's click event
+
+      // Confirm deletion
+      if (confirm(`Are you sure you want to delete "${obj.name}"?`)) {
+        // Remove the object from the scene
+        if (sceneManager.removeObject(obj.id)) {
+          // Update the UI
+          updateSceneManagerUI();
+        }
+      }
+    });
 
     // Add click event to select the object
     item.addEventListener("click", () => {
@@ -180,7 +231,12 @@ function updateSceneManagerUI() {
       });
     });
 
-    sceneObjectsList.appendChild(item);
+    // Add the item and delete button to the container
+    itemContainer.appendChild(item);
+    itemContainer.appendChild(deleteButton);
+
+    // Add the container to the list
+    sceneObjectsList.appendChild(itemContainer);
   });
 }
 
@@ -205,14 +261,9 @@ function addNewCube() {
 
 // Add a button to create new cubes
 const addCubeButton = document.createElement("button");
+addCubeButton.className = "add-cube-button";
 addCubeButton.textContent = "Add New Cube";
-addCubeButton.style.marginTop = "10px";
-addCubeButton.style.padding = "8px";
-addCubeButton.style.backgroundColor = "#3498db";
-addCubeButton.style.color = "white";
-addCubeButton.style.border = "none";
-addCubeButton.style.borderRadius = "4px";
-addCubeButton.style.cursor = "pointer";
+
 addCubeButton.addEventListener("click", addNewCube);
 document.getElementById("scene-manager").appendChild(addCubeButton);
 
