@@ -193,8 +193,8 @@ function importStl(engine: Engine) {
         const file = input.files[0];
         const loader = new STLLoader();
         loader.load(URL.createObjectURL(file), geometry => {
-            const material = new MeshBasicMaterial({ color: Math.random() * 0xffffff });
-            const mesh = new Mesh(geometry, material);
+            const lightBlue = new MeshStandardMaterial({ color: Math.random() * 0xffffff });
+            const mesh = new Mesh(geometry, lightBlue);
             engine.addElem(mesh);
             input.value = "";
         })
