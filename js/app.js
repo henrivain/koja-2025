@@ -192,6 +192,12 @@ function animate() {
 animate();
 
 // Add STL import/export functionality
+const guiImpExp = new dat.GUI({ width: 200 });
+guiImpExp.domElement.style.position = 'absolute';
+guiImpExp.domElement.style.left = '520px';
+guiImpExp.domElement.style.top = '0px';
+guiImpExp.domElement.style.zIndex = '100';
+
 const stlInput = document.createElement('input');
 stlInput.type = 'file';
 stlInput.accept = '.stl';
@@ -249,5 +255,5 @@ objectAdder.exportSTL = function() {
 };
 
 // Add buttons to guiAdd
-guiAdd.add(objectAdder, 'importSTL').name('Import STL');
-guiAdd.add(objectAdder, 'exportSTL').name('Export STL');
+guiImpExp.add(objectAdder, 'importSTL').name('Import STL');
+guiImpExp.add(objectAdder, 'exportSTL').name('Export STL');
