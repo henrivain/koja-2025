@@ -1,9 +1,9 @@
 // Initialize scene, camera, and renderer
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
-document.getElementById('viewport').appendChild(renderer.domElement);
+document.getElementById("viewport").appendChild(renderer.domElement);
 
 // Create a cube
 const geometry = new THREE.BoxGeometry();
@@ -78,15 +78,15 @@ function onClick(event) {
     highlightObject(null);
     updateGUIForSelected();
 }
-renderer.domElement.addEventListener('click', onClick);
+renderer.domElement.addEventListener("click", onClick);
 
 // GUI controls
 const gui = new dat.GUI();
 // gui.domElement.style.display = 'none'; // Initially hidden
-gui.domElement.style.position = 'absolute';
-gui.domElement.style.left = '10px';
-gui.domElement.style.top = '70px';
-gui.domElement.style.zIndex = '100';
+gui.domElement.style.position = "absolute";
+gui.domElement.style.left = "10px";
+gui.domElement.style.top = "70px";
+gui.domElement.style.zIndex = "100";
 
 const cubeParams = {
     x: 0,
@@ -96,9 +96,9 @@ const cubeParams = {
     rotationX: 0,
     rotationY: 0,
     rotationZ: 0,
-    length: 1,  // Scale along x-axis
-    width: 1,   // Scale along y-axis
-    height: 1   // Scale along z-axis
+    length: 1, // Scale along x-axis
+    width: 1, // Scale along y-axis
+    height: 1, // Scale along z-axis
 };
 
 function updateGUIForSelected() {
@@ -118,16 +118,16 @@ function updateGUIForSelected() {
     cubeParams.rotationX = selectedObject.rotation.x;
     cubeParams.rotationY = selectedObject.rotation.y;
     cubeParams.rotationZ = selectedObject.rotation.z;
-    
+
     // Set the length, width, height based on the current scale
     cubeParams.length = selectedObject.scale.x;
     cubeParams.width = selectedObject.scale.y;
     cubeParams.height = selectedObject.scale.z;
 
-    gui.add(cubeParams, 'x', -10, 10).onChange(() => selectedObject.position.x = cubeParams.x);
-    gui.add(cubeParams, 'y', -10, 10).onChange(() => selectedObject.position.y = cubeParams.y);
-    gui.add(cubeParams, 'z', -10, 10).onChange(() => selectedObject.position.z = cubeParams.z);
-    gui.add(cubeParams, 'scale', 0.1, 3).onChange(() => {
+    gui.add(cubeParams, "x", -100, 100).onChange(() => (selectedObject.position.x = cubeParams.x));
+    gui.add(cubeParams, "y", -100, 100).onChange(() => (selectedObject.position.y = cubeParams.y));
+    gui.add(cubeParams, "z", -100, 100).onChange(() => (selectedObject.position.z = cubeParams.z));
+    gui.add(cubeParams, "scale", 0.01, 10).onChange(() => {
         selectedObject.scale.set(cubeParams.scale, cubeParams.scale, cubeParams.scale);
         if (outlineMesh) {
             outlineMesh.scale.copy(selectedObject.scale).multiplyScalar(1.05);
@@ -135,86 +135,166 @@ function updateGUIForSelected() {
     });
 
     // Adding the independent scaling controls for each axis
-    gui.add(cubeParams, 'length', 0.1, 5).onChange(() => {
+    gui.add(cubeParams, "length", 0.1, 5).onChange(() => {
         selectedObject.scale.x = cubeParams.length;
         if (outlineMesh) {
             outlineMesh.scale.x = cubeParams.length * 1.05;
         }
     });
 
-    gui.add(cubeParams, 'width', 0.1, 5).onChange(() => {
+    gui.add(cubeParams, "width", 0.1, 5).onChange(() => {
         selectedObject.scale.y = cubeParams.width;
         if (outlineMesh) {
             outlineMesh.scale.y = cubeParams.width * 1.05;
         }
     });
 
-    gui.add(cubeParams, 'height', 0.1, 5).onChange(() => {
+    gui.add(cubeParams, "height", 0.1, 5).onChange(() => {
         selectedObject.scale.z = cubeParams.height;
         if (outlineMesh) {
             outlineMesh.scale.z = cubeParams.height * 1.05;
         }
     });
 
-    gui.add(cubeParams, 'rotationX', -Math.PI, Math.PI).onChange(() => {
+    gui.add(cubeParams, "rotationX", -Math.PI, Math.PI).onChange(() => {
         selectedObject.rotation.x = cubeParams.rotationX;
     });
-    gui.add(cubeParams, 'rotationY', -Math.PI, Math.PI).onChange(() => {
+    gui.add(cubeParams, "rotationY", -Math.PI, Math.PI).onChange(() => {
         selectedObject.rotation.y = cubeParams.rotationY;
     });
-    gui.add(cubeParams, 'rotationZ', -Math.PI, Math.PI).onChange(() => {
+    gui.add(cubeParams, "rotationZ", -Math.PI, Math.PI).onChange(() => {
         selectedObject.rotation.z = cubeParams.rotationZ;
     });
 
-    gui.domElement.style.display = 'block'; // Show GUI when object is selected
+    gui.domElement.style.display = "block"; // Show GUI when object is selected
 }
 
 // Add Cube/Sphere GUI
 const guiAdd = new dat.GUI({ width: 200 });
-guiAdd.domElement.style.position = 'absolute';
-guiAdd.domElement.style.left = '300px';
-guiAdd.domElement.style.top = '70px';
-guiAdd.domElement.style.zIndex = '100';
-
+guiAdd.domElement.style.position = "absolute";
+guiAdd.domElement.style.left = "300px";
+guiAdd.domElement.style.top = "70px";
+guiAdd.domElement.style.zIndex = "100";
 const objectAdder = {
+    // Function to add a Cube (panel)
     addCube: function () {
-        const geometry = new THREE.BoxBufferGeometry();
+        const geometry = new THREE.BoxBufferGeometry(cubeParams.length, cubeParams.height, cubeParams.width);
         const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
         const cube = new THREE.Mesh(geometry, material);
-        cube.position.set((Math.random() - 0.5) * 10, 0, (Math.random() - 0.5) * 10);
+
+        // Position the cube based on its parameters (adjust if needed)
+        cube.position.set(cubeParams.x, cubeParams.y, cubeParams.z);
+
+        // Apply rotation based on cubeParams
+        cube.rotation.set(cubeParams.rotationX, cubeParams.rotationY, cubeParams.rotationZ);
+
         scene.add(cube);
     },
+
+    // Function to add a Sphere (panel or another object)
     addSphere: function () {
         const geometry = new THREE.SphereBufferGeometry(0.5, 32, 32);
         const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
         const sphere = new THREE.Mesh(geometry, material);
         sphere.position.set((Math.random() - 0.5) * 10, 0, (Math.random() - 0.5) * 10);
         scene.add(sphere);
-    }
+    },
+
+    // Function to add a Panel with the provided sizes
+    addInsidePanel: function () {
+        const geometry = new THREE.BoxBufferGeometry(9.842, 7.042, 0.01);
+        const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
+        const insidePanel = new THREE.Mesh(geometry, material);
+
+        // Position the panel (for example, you can adjust these values)
+        insidePanel.position.set((Math.random() - 0.5) * 10, 0, (Math.random() - 0.5) * 10);
+
+        // Add the panel to the scene
+        scene.add(insidePanel);
+    },
+
+    // Function to add a Panel with the provided sizes
+    addOutsidePanel: function () {
+        const geometry = new THREE.BoxBufferGeometry(9.870, 7.070, 0.01);
+        const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
+        const outsidePanel = new THREE.Mesh(geometry, material);
+
+        // Position the panel (for example, you can adjust these values)
+        outsidePanel.position.set((Math.random() - 0.5) * 10, 0, (Math.random() - 0.5) * 10);
+
+        // Add the panel to the scene
+        scene.add(outsidePanel);
+    },
+
+    // Function to add a Block Coil (block)
+    addBlockCoil: function () {
+        // Create a coil block (just a box for now as a placeholder for the actual model)
+        const geometry = new THREE.BoxBufferGeometry(17.80, 3.80, 0.015);
+        const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
+        const blockCoil = new THREE.Mesh(geometry, material);
+
+        // Position the block coil (adjust to your needs)
+        blockCoil.position.set((Math.random() - 0.5) * 10, 0, (Math.random() - 0.5) * 10);
+
+        // Add the block coil to the scene
+        scene.add(blockCoil);
+    },
+
+    // Function to add a Profile
+    addProfile: function () {
+        const geometry = new THREE.BoxBufferGeometry(1.0, 0.01, 0.01); // Thin profile
+        const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
+        const profile = new THREE.Mesh(geometry, material);
+
+        // Position the profile (example placement)
+        profile.position.set(0, 0, 0);
+
+        scene.add(profile);
+    },
+
+    // Function to add a Module
+    addModule: function () {
+        const geometry = new THREE.BoxBufferGeometry(10.00, 10.00, 10.00);
+        const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
+        const module = new THREE.Mesh(geometry, material);
+
+        // Position the module (example placement)
+        module.position.set(0, 0, 0);
+
+        scene.add(module);
+    },
 };
 
-guiAdd.add(objectAdder, 'addCube').name('Add Cube');
-guiAdd.add(objectAdder, 'addSphere').name('Add Sphere');
+// GUI Additions (Adjust the GUI parameters to your needs)
+guiAdd.add(objectAdder, "addCube").name("Add Cube");
+guiAdd.add(objectAdder, "addSphere").name("Add Sphere");
+
+// Adding more object types to the GUI
+guiAdd.add(objectAdder, "addInsidePanel").name("Add Panel In"); // Panel Inside example (dimensions)
+guiAdd.add(objectAdder, "addOutsidePanel").name("Add Panel Out"); // Panel Outside example (dimensions)
+guiAdd.add(objectAdder, "addBlockCoil").name("Add Block Coil"); // Block Coil example (dimensions)
+guiAdd.add(objectAdder, "addProfile").name("Add Profile"); // Profile example (length)
+guiAdd.add(objectAdder, "addModule").name("Add Module"); // Module example (dimensions)
 
 // Move selected object with arrow keys
 let moveSpeed = 0.1;
-document.addEventListener('keydown', (event) => {
+document.addEventListener("keydown", (event) => {
     if (!selectedObject) return;
 
     switch (event.key) {
-        case 'ArrowUp':
+        case "ArrowUp":
             selectedObject.position.z -= moveSpeed;
             break;
-        case 'ArrowDown':
+        case "ArrowDown":
             selectedObject.position.z += moveSpeed;
             break;
-        case 'ArrowLeft':
+        case "ArrowLeft":
             selectedObject.position.x -= moveSpeed;
             break;
-        case 'ArrowRight':
+        case "ArrowRight":
             selectedObject.position.x += moveSpeed;
             break;
-        case 'Delete':
+        case "Delete":
             // Remove the selected object from the scene
             scene.remove(selectedObject);
             // Remove outline if exists
@@ -249,40 +329,41 @@ animate();
 
 // Add STL import/export functionality
 const guiImpExp = new dat.GUI({ width: 200 });
-guiImpExp.domElement.style.position = 'absolute';49
-guiImpExp.domElement.style.left = '520px';
-guiImpExp.domElement.style.top = '70px';
-guiImpExp.domElement.style.zIndex = '100';
+guiImpExp.domElement.style.position = "absolute";
+49;
+guiImpExp.domElement.style.left = "520px";
+guiImpExp.domElement.style.top = "70px";
+guiImpExp.domElement.style.zIndex = "100";
 
-const stlInput = document.createElement('input');
-stlInput.type = 'file';
-stlInput.accept = '.stl';
+const stlInput = document.createElement("input");
+stlInput.type = "file";
+stlInput.accept = ".stl";
 document.body.appendChild(stlInput);
 
-stlInput.addEventListener('change', function(e) {
+stlInput.addEventListener("change", function (e) {
     const file = e.target.files[0];
     if (!file) return;
 
     const loader = new THREE.STLLoader();
-    loader.load(URL.createObjectURL(file), function(geometry) {
+    loader.load(URL.createObjectURL(file), function (geometry) {
         const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
         const mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
-        stlInput.value = ''; // Reset input
+        stlInput.value = ""; // Reset input
     });
 });
 
 // Add import/export functions to objectAdder
-objectAdder.importSTL = function() {
+objectAdder.importSTL = function () {
     stlInput.click();
 };
 
-objectAdder.exportSTL = function() {
+objectAdder.exportSTL = function () {
     let objectsToExport = [];
     if (selectedObject) {
         objectsToExport.push(selectedObject);
     } else {
-        scene.children.forEach(child => {
+        scene.children.forEach((child) => {
             if (child !== floor && !(child instanceof THREE.Light)) {
                 objectsToExport.push(child);
             }
@@ -290,25 +371,24 @@ objectAdder.exportSTL = function() {
     }
 
     if (objectsToExport.length === 0) {
-        alert('No objects to export!');
+        alert("No objects to export!");
         return;
     }
 
-
     const exporter = new THREE.STLExporter();
     const group = new THREE.Group();
-    objectsToExport.forEach(obj => group.add(obj.clone()));
+    objectsToExport.forEach((obj) => group.add(obj.clone()));
     const stlString = exporter.parse(group);
 
-    const blob = new Blob([stlString], { type: 'text/plain' });
-    const link = document.createElement('a');
+    const blob = new Blob([stlString], { type: "text/plain" });
+    const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = selectedObject ? 'selected_object.stl' : 'scene.stl';
+    link.download = selectedObject ? "selected_object.stl" : "scene.stl";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 };
 
 // Add buttons to guiAdd
-guiImpExp.add(objectAdder, 'importSTL').name('Import STL');
-guiImpExp.add(objectAdder, 'exportSTL').name('Export STL');
+guiImpExp.add(objectAdder, "importSTL").name("Import STL");
+guiImpExp.add(objectAdder, "exportSTL").name("Export STL");
