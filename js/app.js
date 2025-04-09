@@ -93,6 +93,12 @@ const cubeParams = {
     y: 0,
     z: 0,
     scale: 1,
+    rotationX: 0,
+    rotationY: 0,
+    rotationZ: 0,
+    length: 1,  // Scale along x-axis
+    width: 1,   // Scale along y-axis
+    height: 1   // Scale along z-axis
 };
 
 function updateGUIForSelected() {
@@ -109,6 +115,14 @@ function updateGUIForSelected() {
     cubeParams.y = selectedObject.position.y;
     cubeParams.z = selectedObject.position.z;
     cubeParams.scale = selectedObject.scale.x;
+    cubeParams.rotationX = selectedObject.rotation.x;
+    cubeParams.rotationY = selectedObject.rotation.y;
+    cubeParams.rotationZ = selectedObject.rotation.z;
+    
+    // Set the length, width, height based on the current scale
+    cubeParams.length = selectedObject.scale.x;
+    cubeParams.width = selectedObject.scale.y;
+    cubeParams.height = selectedObject.scale.z;
 
     gui.add(cubeParams, 'x', -10, 10).onChange(() => selectedObject.position.x = cubeParams.x);
     gui.add(cubeParams, 'y', -10, 10).onChange(() => selectedObject.position.y = cubeParams.y);
@@ -118,6 +132,38 @@ function updateGUIForSelected() {
         if (outlineMesh) {
             outlineMesh.scale.copy(selectedObject.scale).multiplyScalar(1.05);
         }
+    });
+
+    // Adding the independent scaling controls for each axis
+    gui.add(cubeParams, 'length', 0.1, 5).onChange(() => {
+        selectedObject.scale.x = cubeParams.length;
+        if (outlineMesh) {
+            outlineMesh.scale.x = cubeParams.length * 1.05;
+        }
+    });
+
+    gui.add(cubeParams, 'width', 0.1, 5).onChange(() => {
+        selectedObject.scale.y = cubeParams.width;
+        if (outlineMesh) {
+            outlineMesh.scale.y = cubeParams.width * 1.05;
+        }
+    });
+
+    gui.add(cubeParams, 'height', 0.1, 5).onChange(() => {
+        selectedObject.scale.z = cubeParams.height;
+        if (outlineMesh) {
+            outlineMesh.scale.z = cubeParams.height * 1.05;
+        }
+    });
+
+    gui.add(cubeParams, 'rotationX', -Math.PI, Math.PI).onChange(() => {
+        selectedObject.rotation.x = cubeParams.rotationX;
+    });
+    gui.add(cubeParams, 'rotationY', -Math.PI, Math.PI).onChange(() => {
+        selectedObject.rotation.y = cubeParams.rotationY;
+    });
+    gui.add(cubeParams, 'rotationZ', -Math.PI, Math.PI).onChange(() => {
+        selectedObject.rotation.z = cubeParams.rotationZ;
     });
 
     gui.domElement.style.display = 'block'; // Show GUI when object is selected
