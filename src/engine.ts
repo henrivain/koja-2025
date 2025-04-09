@@ -5,6 +5,8 @@ import {
     AmbientLight,
     DirectionalLight,
     Object3D,
+    PCFSoftShadowMap,
+    TextureLoader,
 } from "three";
 
 import * as dat from 'dat.gui';
@@ -27,10 +29,18 @@ export default class Engine {
     constructor(container: HTMLElement, elems: Object3D[]) {
         this.container = container;
         this.renderer = new WebGLRenderer({ antialias: true });
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = PCFSoftShadowMap;
+
+
+
         this.camera = new PerspectiveCamera(75, container.clientWidth / container.clientHeight, 1, 5000);
         this.scene = new Scene();
         this.elems = elems;
         this.controls = this.addControls();
+
+        const loader = new TextureLoader();
+        this.scene.background = loader.load("gambina-muovipullo.jpg");
     }
 
     run() {
@@ -76,7 +86,7 @@ export default class Engine {
         ambientLight.position.set(0, 1, 1).normalize();
         this.scene.add(ambientLight);
 
-        const directionalLight = new DirectionalLight(0xffffff, 2);
+        const directionalLight = new DirectionalLight(0xffffff, 3);
         directionalLight.position.set(100, 100, 100);
         this.scene.add(directionalLight);
     }

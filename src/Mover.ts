@@ -11,7 +11,7 @@ import {
 import Engine from './engine';
 
 
-const MAX_INPUT = 200;
+const MAX_INPUT = 2000;
 const MOVE_SPEED = 20;
 
 export class Mover {
@@ -38,13 +38,6 @@ export class Mover {
         this.renderer = engine.renderer;
 
         // Add Cube/Sphere GUI
-        const guiAdd = new dat.GUI({ width: 200 });
-        guiAdd.domElement.style.position = 'absolute';
-        guiAdd.domElement.style.left = '300px';
-        guiAdd.domElement.style.top = '0px';
-        guiAdd.domElement.style.zIndex = '100';
-
-
         document.addEventListener("click", e => {
             const rect = this.renderer.domElement.getBoundingClientRect();
             this.mouseLocation.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -53,17 +46,15 @@ export class Mover {
             const intersects = this.rayCaster.intersectObjects(this.scene.children, false);
 
             for (let i = 0; i < intersects.length; i++) {
-                // if (intersects[i].object !== floor) {
                 this.selected = intersects[i].object;
                 this.highLight(this.selected);
                 this.updateGUIForSelected();
                 return;
-                // }
             }
 
-            this.selected = null;
-            this.highLight(null);
-            this.updateGUIForSelected();
+            //this.selected = null;
+            //this.highLight(null);
+            //this.updateGUIForSelected();
         });
 
 
