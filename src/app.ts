@@ -100,9 +100,9 @@ function main() {
         engine.addElem(createRandomCube())
 
     });
-    document.getElementById("random-ball-btn")?.addEventListener("click", _ => {
-        engine.addElem(createRandomSphere())
-    });
+    // document.getElementById("random-ball-btn")?.addEventListener("click", _ => {
+    //     engine.addElem(createRandomSphere())
+    // });
 }
 
 function exportSTL(objects: Object3D[]) {
@@ -144,18 +144,23 @@ function importStl(engine: Engine) {
 
 
 function createRandomCube() {
-    const geometry = new BoxGeometry();
-    const material = new MeshBasicMaterial({ color: Math.random() * 0xffffff });
-    const cube = new Mesh(geometry, material);
-    cube.position.set((Math.random() - 0.5) * 10, 0, (Math.random() - 0.5) * 10);
+    const blueMaterial = new MeshPhongMaterial({ color: 0x3498db, side: DoubleSide });
+    const geometry = new BoxGeometry(200, 200, 100);
+    const cube = new Mesh(geometry, blueMaterial);
+    cube.position.set((Math.random() - 0.5) * 1000, 0, (Math.random() - 0.5) * 1000)
+
+    // const geometry = new BoxGeometry();
+    // const material = new MeshBasicMaterial({ color: Math.random() * 0xffffff });
+    // const cube = new Mesh(geometry, material);
+    // cube.position.set((Math.random() - 0.5) * 100, 0, (Math.random() - 0.5) * 100);
     return cube;
 }
 
 function createRandomSphere() {
+    const greenMaterial = new MeshPhongMaterial({ color: 0x1db32e, side: DoubleSide });
     const geometry = new SphereGeometry(0.5, 32, 32);
-    const material = new MeshBasicMaterial({ color: Math.random() * 0xffffff });
-    const sphere = new Mesh(geometry, material);
-    sphere.position.set((Math.random() - 0.5) * 10, 0, (Math.random() - 0.5) * 10);
+    const sphere = new Mesh(geometry, greenMaterial);
+    sphere.position.set((Math.random() - 0.5) * 1000, 0, (Math.random() - 0.5) * 1000);
     return sphere;
 }
 
